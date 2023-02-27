@@ -135,16 +135,12 @@ class JSONOpen:
 		log.debug(f"Saving zip extracted contents to dir: {destination}")
 		with urlopen(url) as zipres:
 			with ZipFile(BytesIO(zipres.read())) as zfile:
-				log.debug(f"zipfile filelist: {zfile.filelist}")
 				# ex: zipfile filelist: [<ZipInfo filename='2023-01-08_Health-Plans-Inc-(HPI)_index.json' compress_type=deflate filemode='-rwxrwxrwx' file_size=7347 compress_size=1044>]
-
-				#log.debug(f"zipfile namelist: {zfile.namelist()}")
-				# ex: zipfile namelist: ['2023-01-08_Health-Plans-Inc-(HPI)_index.json']
+				log.debug(f"zipfile filelist: {zfile.filelist}")
 		
 				files_in_zip = zfile.namelist()
+				# ex: zipfile namelist: ['2023-01-08_Health-Plans-Inc-(HPI)_index.json']
 
-				# If zip is single file, this function should return the 
-				# full path to the extracted file
 				fname = zfile.extractall(destination)
 
 		files_list = [os.path.join(destination, x) for x in files_in_zip]
@@ -153,8 +149,6 @@ class JSONOpen:
 		if fname is not None:
 			self.unzipped_filename = os.path.join(destination, fname)
 			log.debug(f"Fetched zip and its extracted filename is: {self.unzipped_filename}")
-		else:
-			log.debug("why is fname an empty var here?")
 		
 		self.unzipped_filename = files_list[0]
 		return self.unzipped_filename
