@@ -500,13 +500,22 @@ async def fetch_remote_reference(
 	session: aiohttp.client.ClientSession,
 	url: str,
 ):
+	filename = extract_filename_from_url(url)
+
 	response = await session.get(url)
 	assert response.status == 200
 
 	log.debug(f'Opened remote provider reference: {url}')
-
-	data = await response.read()
-	reference = json.loads(data)
+	log.debug(f"filename var: {filename}")
+	
+	reference = None
+	if url.endswith(".zip"):
+		log.debug("Provider ref is a zip file, handling")
+		with JSONOpen(url) as f:
+			reference = json.load(f)
+	else:
+		data = await response.read()
+		reference = json.loads(data)
 	return reference
 
 
@@ -524,8 +533,10 @@ async def append_processed_remote_reference(
 			session, url, group_id = await queue.get()
 
 			reference = await fetch_remote_reference(session, url)
-			reference['provider_group_id'] = group_id
-			reference = process_reference(reference, npi_filter)
+			if reference:
+				log.debug(f"reference var not empty, size: {len(reference):,d}")
+				reference['provider_group_id'] = group_id
+				reference = process_reference(reference, npi_filter)
 
 			if reference:
 				processed_references.append(reference)
